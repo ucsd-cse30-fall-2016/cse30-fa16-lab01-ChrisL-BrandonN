@@ -62,6 +62,7 @@ unsigned f2u(float f) {
 /* We do not support C11 <threads.h>.  */
 
 int test_bitAnd(int x, int y)
+
 {
   return x&y;
 }
@@ -168,6 +169,48 @@ assert(bitAnd(0,6)==test_bitAnd(0,6));
 assert(bitAnd(255,254)==test_bitAnd(255,254));
 printf("Passed Test Cases for bitAnd\n");
 
+assert(getByte(0x12345678,0)==test_getByte(0x12345678,0));
+assert(getByte(0x12345678,3)==test_getByte(0x12345678,3));
+printf("Passed Test Cases for getByte\n");
+
+assert(bang(0)==test_bang(0));
+assert(bang(1)==test_bang(1));
+printf("Passed Test Cases for bang\n");
+
+assert(logicalShift(0x01234567,7)==test_logicalShift(0x01234567,7));
+assert(logicalShift(0x12345678,2)==test_logicalShift(0x12345678,2));
+printf("Passed Test Cases for logicalShift\n");
+
+assert(bitCount(5)==test_bitCount(5));
+assert(bitCount(-5)==test_bitCount(-5));
+assert(bitCount(0)==test_bitCount(0));
+printf("Passed Test Cases for bitCount\n");
+
+assert(fitsBits(5,3)==test_fitsBits(5,3));
+printf("Passed Test Cases for fitsBits\n");
+
+assert(divpwr2(15,2)==test_divpwr2(15,2));
+printf("Passed Test Cases for divpwr2\n");
+
+assert(negate(5)==test_negate(5));
+assert(negate(0)==test_negate(0));
+printf("Passed Test Cases for negate\n");
+
+assert(isPositive(0)==test_isPositive(0));
+assert(isPositive(-1)==test_isPositive(-1));
+assert(isPositive(1)==test_isPositive(1));
+printf("Passed Test Cases for isPositive\n");
+
+assert(isLessOrEqual(0,0)==test_isLessOrEqual(0,0));
+assert(isLessOrEqual(1,2)==test_isLessOrEqual(1,2));
+assert(isLessOrEqual(2,1)==test_isLessOrEqual(2,1));
+printf("Passed Test Cases for isLessOrEqual\n");
+
+assert(ilog2(16)==test_ilog2(16));
+printf("Passed Test Cases for log2\n");
+
+assert(tmin()==test_tmin());
+printf("Passed Test Cases for Tmin\n");
 return 0;
 
 }

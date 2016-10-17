@@ -171,7 +171,7 @@ NOTES:
  *   Rating: 1
  */
 int bitAnd(int x, int y) {
-  return 2;
+  return (~(~x|~y));      
 }
 /* 
  * getByte - Extract byte n from word x
@@ -182,7 +182,8 @@ int bitAnd(int x, int y) {
  *   Rating: 2
  */
 int getByte(int x, int n) {
-  return 2;
+  return (x>>(n<<3)) & 0xFF; //(n<<3)  // x is shifted (n*8) bits
+				       // unnecessary bytes are masked
 }
 /* 
  * logicalShift - shift x to the right by n, using a logical shift
@@ -193,7 +194,10 @@ int getByte(int x, int n) {
  *   Rating: 3 
  */
 int logicalShift(int x, int n) {
-  return 2;
+	int shift = x >> n; //logical shift right by n  
+	int nbit = 32 + ~n;
+	int maskbit = (x>>n)&(1<<nbit);
+	return shift|maskbit;
 }
 /*
  * bitCount - returns count of number of 1's in word
@@ -203,7 +207,25 @@ int logicalShift(int x, int n) {
  *   Rating: 4
  */
 int bitCount(int x) {
-  return 2;
+int m1,m2,m3;
+	//Bits we will be setting
+	m1 = 0x55;
+	m2 = 0x33;
+	m3 = 0x0F;
+
+	//Set bits throughout the 32 bits
+	m1 = (((((m1<<8)+0x55)<<8)+0x55)<<8)+0x55;
+	m2 = (((((m2<<8)+0x33)<<8)+0x33)<<8)+0x33;
+	m3 = (((((m3<<8)+0x0F)<<8)+0x0F)<<8)+0x0F;
+
+	//Splitting the bits in half
+	x = (~((x>>1) &m1)+1) + x;
+	x = ((x>>2)& m2) + (x & m2);
+	x = ((x>>4)& m3) + (x & m3);
+	x = (x+(x>>16));
+	x = (x+(x>>8));
+
+	return (x & 0x3F);
 }
 /* 
  * bang - Compute !x without using !
@@ -213,7 +235,10 @@ int bitCount(int x) {
  *   Rating: 4 
  */
 int bang(int x) {
-  return 2;
+	 x = (~x+1)&x; //Finds the LSB
+	 x = (~x+1);  //Finds the sign 
+	 x = (~(x>>31)&1); //Returns the opposite of the sign
+  return x;
 }
 /* 
  * tmin - return minimum two's complement integer 
@@ -222,7 +247,7 @@ int bang(int x) {
  *   Rating: 1
  */
 int tmin(void) {
-  return 2;
+	 return 1<<31;
 }
 /* 
  * fitsBits - return 1 if x can be represented as an 
@@ -234,7 +259,10 @@ int tmin(void) {
  *   Rating: 2
  */
 int fitsBits(int x, int n) {
-  return 2;
+int flipBit = (~n + 1) + 32; 
+int fit = (((x << flipBit)>>flipBit)&x);
+   
+return !(fit);
 }
 /* 
  * divpwr2 - Compute x/(2^n), for 0 <= n <= 30
@@ -245,7 +273,10 @@ int fitsBits(int x, int n) {
  *   Rating: 2
  */
 int divpwr2(int x, int n) {
-    return 2;
+	int mask = ~0 +(1<<n);
+	int signCheck = mask & (x>>31);
+	int correctX = x + signCheck;
+    return correctX >> n;
 }
 /* 
  * negate - return -x 
@@ -257,7 +288,7 @@ int divpwr2(int x, int n) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+  return ~x+1; 
 }
 /* 
  * isPositive - return 1 if x > 0, return 0 otherwise 
@@ -267,7 +298,9 @@ int negate(int x) {
  *   Rating: 3
  */
 int isPositive(int x) {
-  return 2;
+int zeroCheck = !x;
+int mostSigBit =(x>>31);
+  return (!(mostSigBit|zeroCheck));
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -277,7 +310,11 @@ int isPositive(int x) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+int psign, nsign, same;
+  same =(1+((y+(~x)+1)>>31));
+  psign =((1&(x>>31))&(1+(y>>31)));
+  nsign =(1^((1+(x>>31))&(1&(y>>31))));
+  return (same|psign) & nsign;
 }
 /*
  * ilog2 - return floor(log base 2 of x), where x > 0
@@ -287,7 +324,28 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4
  */
 int ilog2(int x) {
-  return 2;
+	int mask1, mask2, mask3;
+	mask1 = 0x55;
+	mask2 = 0x33;
+	mask3 = 0x0F;
+	//Set the bits for masking
+	mask1 = ((mask1 + (mask1<<8))<<16)+mask1;
+	mask2 = ((mask2 + (mask2<<8))<<16)+mask2;
+	mask3 = ((mask3 + (mask3<<8))<<16)+mask3;
+
+	x = (x>>1)|x;
+	x = (x>>2)|x;
+	x = (x>>4)|x;
+	x = (x>>8)|x;
+	x = (x>>16)|x;
+	x = (x>>1);
+
+	x = (mask1 & x) + (mask1 & (x>>1));
+	x = (mask2 & x) + (mask2 & (x>>2));
+	x = (mask3 & (x + (x>>4)));
+	x = (x+(x>>8));
+	x = (x+(x>>16));
+ return x & 0x3F;
 }
 /* 
  * float_neg - Return bit-level equivalent of expression -f for
@@ -301,9 +359,12 @@ int ilog2(int x) {
  *   Rating: 2
  */
 unsigned float_neg(unsigned uf) {
- return 2;
-}
-/* 
+ if ( !(0x007FFFFF&uf)||(0x7F800000&(~uf)))
+	{
+	uf = (1<<31)^uf;	
+	}
+return uf;
+}/* 
  * float_i2f - Return bit-level equivalent of expression (float) x
  *   Result is returned as unsigned int, but
  *   it is to be interpreted as the bit-level representation of a
