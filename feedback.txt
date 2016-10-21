@@ -1,0 +1,7 @@
+Did not finish. Good coding style and comment.
+
+Final C score for Performance	30
+Final C score for Correctness	4.932731707
+Final ARM Score	4.686857143
+Style Score	5
+Total Score	44.6
